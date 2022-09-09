@@ -14,7 +14,7 @@
 */
 
 $router->get('/', function () use ($router) {
-    return $router->app->version();
+    return "inventario-peliculas";
 });
 
 $router->post('/v1/movie', 'MovieController@create');
