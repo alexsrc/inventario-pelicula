@@ -33,7 +33,7 @@ class MovieController extends Controller
      * @return JsonResponse
      */
     public function read(Request $request){
-        try {
+
 
             $parameters = (object)$request->all();
 
@@ -42,10 +42,7 @@ class MovieController extends Controller
                 ->read($parameters->filter,$parameters->value);
 
             return $this->response(200,$responseCreate);
-        }
-        catch (\Exception $exception){
-            throw new \Exception($exception->getMessage());
-        }
+
     }
 
     /**
