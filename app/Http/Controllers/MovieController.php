@@ -44,8 +44,7 @@ class MovieController extends Controller
             return $this->response(200,$responseCreate);
         }
         catch (\Exception $exception){
-
-            return $this->response(500,["error" => $exception->getMessage()]);
+            return $this->response($exception->getCode(),["error" => $exception->getMessage()]);
         }
     }
 
