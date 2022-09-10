@@ -145,7 +145,7 @@ class Movie {
             case $parameterConsult=="category":
                 $category = Categoria::where("nombre",$value)->first();
                 if(!$category) {
-                    throw new \Exception("No found the category {$value}");
+                    throw new \Exception("No found the category {$value}",self::codeBadRequest);
                 }
                 $movies = Pelicula::where("id_categoria_fk",$category->id)->where("id_estado_fk",$statusActive)->get();
                 if(!$movies){
