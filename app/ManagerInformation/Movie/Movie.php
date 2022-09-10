@@ -74,7 +74,7 @@ class Movie {
         $movie->id_estado_fk = $state->id;
         $movie->save();
 
-        return ["message" => "Ok, the movie deleted"];
+        return ["message" => "Ok, the movie {$movie->nombre} deleted"];
     }
 
     /**
