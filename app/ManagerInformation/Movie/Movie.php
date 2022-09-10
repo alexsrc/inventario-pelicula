@@ -2,6 +2,7 @@
 
 namespace App\ManagerInformation\Movie;
 
+use App\Master\Master;
 use App\Models\Categoria;
 use App\Models\Estado;
 use App\Models\Inventario;
@@ -9,15 +10,7 @@ use App\Models\Pelicula;
 
 class Movie {
 
-    const fields=[
-        "name" => "nombre",
-        "premiere_year" => "ano_estreno",
-        "category" => "categoria",
-        "quantity" => "unidad",
-        "cost" => "precio"
-    ];
-
-    const codeBadRequest=400;
+    const codeBadRequest = 400;
 
     public function create(string $name,  int $category, string $premiere_year, float $cost, int $quantity):array{
         $category = Categoria::find($category);
@@ -88,6 +81,8 @@ class Movie {
      * @throws \Exception
      */
     public function update(Pelicula $movie, array $properties):array{
+
+        $masterInstance = Master::getMasterSingleton();
         if(is_array($properties) && count($properties)>0){
             $aux = false;
 
@@ -106,11 +101,11 @@ class Movie {
                         $stockTaking = Inventario::where("id_pelicula_fk",$movie->id)->first();
                         $aux=true;
                     }
-                    $fieldTranslate=$this->translateFieldsMovie($field);
+                    $fieldTranslate=$masterInstance->translateFieldsMovie($field);
                     $stockTaking->$fieldTranslate=$fieldValue;
                 }
                 else{
-                    $fieldTranslate = $this->translateFieldsMovie($field);
+                    $fieldTranslate = $masterInstance->translateFieldsMovie($field);
                     $movie->$fieldTranslate = $fieldValue;
                 }
 
@@ -192,25 +187,5 @@ class Movie {
         return (Estado::where("nombre","Activo")->first())->id;
     }
 
-    public function translateFieldsMovie($field,$returnLanguageTranslate="spanish"){
-        $fields = self::fields;
-
-        switch ($returnLanguageTranslate){
-            case $returnLanguageTranslate=="spanish":
-                if(isset($fields[$field])){
-                    return $fields[$field];
-                }
-                throw new \Exception("The field is incorrect",self::codeBadRequest);
-            case $returnLanguageTranslate=="english":
-                foreach ($fields as $key => $value){
-                    if($value === $field){
-                        return $key;
-                    }
-                }
-                throw new \Exception("The field is incorrect",self::codeBadRequest);
-            default:
-                throw new \Exception("The field is incorrect",self::codeBadRequest);
-        }
-    }
 
 }

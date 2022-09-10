@@ -61,11 +61,11 @@ class MovieController extends Controller
                 return $this->response(400,$errors);
             }
 
-            $responseCreate = ((new ManagerInformationFactory())
+            $responseRead = ((new ManagerInformationFactory())
                 ->create("Movie"))
                 ->read($filter,$value);
 
-            return $this->response(200,$responseCreate);
+            return $this->response(200,$responseRead);
         }
         catch (\Exception $exception){
             return $this->response($exception->getCode(),["error" => $exception->getMessage()]);
@@ -79,11 +79,11 @@ class MovieController extends Controller
     public function delete(int $id):JsonResponse{
         try {
 
-            $responseCreate = ((new ManagerInformationFactory())
+            $responseDelete = ((new ManagerInformationFactory())
                 ->create("Movie"))
                 ->delete($id);
 
-            return $this->response(200,$responseCreate);
+            return $this->response(200,$responseDelete);
         }
         catch (\Exception $exception){
             return $this->response($exception->getCode(),["error" => $exception->getMessage()]);
@@ -117,11 +117,11 @@ class MovieController extends Controller
                 return $this->response(400,$errors);
             }
 
-            $responseCreate = ((new ManagerInformationFactory())
+            $responseUpdate = ((new ManagerInformationFactory())
                 ->create("Movie"))
                 ->edit($id,(array)$parameters);
 
-            return $this->response(200,$responseCreate);
+            return $this->response(200,$responseUpdate);
         }
         catch (\Exception $exception){
             return $this->response($exception->getCode(),["error" => $exception->getMessage()]);

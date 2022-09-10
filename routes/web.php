@@ -17,10 +17,19 @@ $router->get('/', function () use ($router) {
     return "inventario-peliculas";
 });
 
-$router->post('/v1/movie', 'MovieController@create');
+$router->group(['prefix' => '/v1'], function ($router) {
+    $router->group(['prefix' => '/movie'], function ($router) {
+        $router->post('', 'MovieController@create');
 
-$router->get('/v1/movie', 'MovieController@read');
+        $router->get('', 'MovieController@read');
 
-$router->delete('/v1/movie/{id}', 'MovieController@delete');
+        $router->delete('/{id}', 'MovieController@delete');
 
-$router->put('/v1/movie/{id}', 'MovieController@update');
+        $router->put('/{id}', 'MovieController@update');
+    });
+
+    $router->group(['prefix' => '/category'], function ($router) {
+        $router->post('', 'CategoryController@create');
+
+    });
+});
