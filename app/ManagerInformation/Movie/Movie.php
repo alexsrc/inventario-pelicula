@@ -47,7 +47,7 @@ class Movie {
      * @throws \Exception
      */
     public function edit(int $id, array $properties):array{
-        $movie = Pelicula::findOrFail($id);
+        $movie = Pelicula::find($id);
 
         if(!$movie){
             throw new \Exception("No found the movie with the ID {$id}",self::codeBadRequest);
@@ -88,7 +88,7 @@ class Movie {
 
             foreach ($properties as $field=>$fieldValue){
                 if($field==="category"){
-                    $category=Categoria::findOrFail($fieldValue);
+                    $category=Categoria::find($fieldValue);
                     if(!$category){
                         throw new \Exception("No found the category with the ID {$fieldValue}",self::codeBadRequest);
                     }
