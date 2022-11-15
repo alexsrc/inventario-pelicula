@@ -17,6 +17,8 @@ $router->get('/', function () use ($router) {
     return "inventario-peliculas";
 });
 
+$router->get('/prueba', "MovieController@prueba");
+
 $router->group(['prefix' => '/v1'], function ($router) {
     $router->group(['prefix' => '/movie'], function ($router) {
         $router->post('', 'MovieController@create');
