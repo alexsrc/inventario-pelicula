@@ -7,7 +7,8 @@ use InvalidArgumentException;
 class ManagerInformationFactory {
 
 	private $managerInformation = [
-    	"Movie" => "Movie"
+    	"Movie" => "Movie",
+    	"Category" => "Category",
   	];
 
 	public function __construct()

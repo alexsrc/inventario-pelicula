@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Factories\ManagerInformationFactory;
+use App\Master\ValidatorCommon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -15,7 +16,19 @@ class MovieController extends Controller
     public function create(Request $request): JsonResponse
     {
             try {
+                $validatorCommon = ValidatorCommon::getValidatorCommonSingleton();
                 $parameters = (object)$request->all();
+
+                $validatorCommon->validateParamFormat($parameters->name,'name',[$validatorCommon->getSTRING(),$validatorCommon->getRANGE()],true,[2,50]);
+                $validatorCommon->validateParamFormat($parameters->category,'category',[$validatorCommon->getINT(),$validatorCommon->getRANGE()],true,[1,50]);
+                $validatorCommon->validateParamFormat($parameters->premiere_year,'premiere_year',[$validatorCommon->getDATE(),$validatorCommon->getRANGE()],true,[4,4]);
+                $validatorCommon->validateParamFormat($parameters->cost,'cost',[$validatorCommon->getFLOAT(),$validatorCommon->getRANGE()],true,[1,50]);
+                $validatorCommon->validateParamFormat($parameters->quantity,'quantity',[$validatorCommon->getINT(),$validatorCommon->getRANGE()],true,[1,50]);
+
+                $errors = $validatorCommon->getError();
+                if(count($errors)>0){
+                    return $this->response(400,$errors);
+                }
 
                 $responseCreate = ((new ManagerInformationFactory())
                     ->create("Movie"))
@@ -32,16 +45,27 @@ class MovieController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function read(Request $request){
+    public function read(Request $request):JsonResponse{
         try {
-
+            $validatorCommon = ValidatorCommon::getValidatorCommonSingleton();
             $parameters = (object)$request->all();
 
-            $responseCreate = ((new ManagerInformationFactory())
-                ->create("Movie"))
-                ->read($parameters->filter,$parameters->value);
+            $filter = (isset($parameters->filter) ? $parameters->filter : "empty");
+            $value = (isset($parameters->value) ? $parameters->value : "empty");
 
-            return $this->response(200,$responseCreate);
+            $validatorCommon->validateParamFormat($filter,'filter',[$validatorCommon->getSTRING(),$validatorCommon->getRANGE()],false,[4,8]);
+            $validatorCommon->validateParamFormat($value,'value',[$validatorCommon->getSTRING(),$validatorCommon->getRANGE()],false,[1,50]);
+
+            $errors = $validatorCommon->getError();
+            if(count($errors)>0){
+                return $this->response(400,$errors);
+            }
+
+            $responseRead = ((new ManagerInformationFactory())
+                ->create("Movie"))
+                ->read($filter,$value);
+
+            return $this->response(200,$responseRead);
         }
         catch (\Exception $exception){
             return $this->response($exception->getCode(),["error" => $exception->getMessage()]);
@@ -52,13 +76,14 @@ class MovieController extends Controller
      * @param int $id
      * @return JsonResponse
      */
-    public function delete(int $id){
+    public function delete(int $id):JsonResponse{
         try {
-            $responseCreate = ((new ManagerInformationFactory())
+
+            $responseDelete = ((new ManagerInformationFactory())
                 ->create("Movie"))
                 ->delete($id);
 
-            return $this->response(200,$responseCreate);
+            return $this->response(200,$responseDelete);
         }
         catch (\Exception $exception){
             return $this->response($exception->getCode(),["error" => $exception->getMessage()]);
@@ -70,16 +95,33 @@ class MovieController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function update(int $id,Request $request){
+    public function update(int $id,Request $request):JsonResponse{
         try {
-            $parameters = $request->all();
+            $validatorCommon = ValidatorCommon::getValidatorCommonSingleton();
+            $parameters = (object)$request->all();
 
+            $name = (isset($parameters->name) ? $parameters->name : "");
+            $category = (isset($parameters->category) ? $parameters->category : "");
+            $premiere_year = (isset($parameters->premiere_year) ? $parameters->premiere_year : "");
+            $cost = (isset($parameters->cost) ? $parameters->cost : "");
+            $quantity = (isset($parameters->quantity) ? $parameters->quantity : "");
 
-            $responseCreate = ((new ManagerInformationFactory())
+            $validatorCommon->validateParamFormat($name,'name',[$validatorCommon->getSTRING(),$validatorCommon->getRANGE()],true,[2,50]);
+            $validatorCommon->validateParamFormat($category,'category',[$validatorCommon->getINT(),$validatorCommon->getRANGE()],true,[1,50]);
+            $validatorCommon->validateParamFormat($premiere_year,'premiere_year',[$validatorCommon->getDATE(),$validatorCommon->getRANGE()],true,[4,4]);
+            $validatorCommon->validateParamFormat($cost,'cost',[$validatorCommon->getFLOAT(),$validatorCommon->getRANGE()],true,[1,50]);
+            $validatorCommon->validateParamFormat($quantity,'quantity',[$validatorCommon->getINT(),$validatorCommon->getRANGE()],true,[1,50]);
+
+            $errors = $validatorCommon->getError();
+            if(count($errors)>0){
+                return $this->response(400,$errors);
+            }
+
+            $responseUpdate = ((new ManagerInformationFactory())
                 ->create("Movie"))
-                ->edit($id,$parameters);
+                ->edit($id,(array)$parameters);
 
-            return $this->response(200,$responseCreate);
+            return $this->response(200,$responseUpdate);
         }
         catch (\Exception $exception){
             return $this->response($exception->getCode(),["error" => $exception->getMessage()]);

@@ -2,6 +2,7 @@
 
 namespace App\ManagerInformation\Movie;
 
+use App\Master\Master;
 use App\Models\Categoria;
 use App\Models\Estado;
 use App\Models\Inventario;
@@ -9,32 +10,26 @@ use App\Models\Pelicula;
 
 class Movie {
 
-    private $fields=[
-        "name" => "nombre",
-        "premiere_year" => "ano_estreno",
-        "category" => "categoria",
-        "quantity" => "unidad",
-        "cost" => "precio"
-    ];
-
-    private $codeBadRequest=400;
+    const codeBadRequest = 400;
 
     public function create(string $name,  int $category, string $premiere_year, float $cost, int $quantity):array{
         $category = Categoria::find($category);
         if(!$category){
-            throw new \Exception("No found the category with the ID {$category}",$this->codeBadRequest);
+            throw new \Exception("No found the category with the ID {$category}",self::codeBadRequest);
         }
 
-        $existMovie = Pelicula::where("nombre",$name)->where("id_categoria_fk")->get();
+        $statusActive = $this->idStatusActive();
+
+        $existMovie = Pelicula::where("nombre",$name)->where("id_categoria_fk",$statusActive)->get();
         if(count($existMovie)>0){
-            throw new \Exception("{$name} movie was already created",$this->codeBadRequest);
+            throw new \Exception("{$name} movie was already created",self::codeBadRequest);
         }
 
         $movie = new Pelicula();
         $movie->nombre = $name;
         $movie->id_categoria_fk = $category->id;
         $movie->ano_estreno = $premiere_year;
-        $movie->id_estado_fk = $this->idStatusActive();
+        $movie->id_estado_fk = $statusActive;
         $movie->save();
 
         $stockTaking = new Inventario();
@@ -52,10 +47,10 @@ class Movie {
      * @throws \Exception
      */
     public function edit(int $id, array $properties):array{
-        $movie = Pelicula::findOrFail($id);
+        $movie = Pelicula::find($id);
 
         if(!$movie){
-            throw new \Exception("No found the movie with the ID {$id}",$this->codeBadRequest);
+            throw new \Exception("No found the movie with the ID {$id}",self::codeBadRequest);
         }
 
         return $this->update($movie, $properties);
@@ -68,32 +63,34 @@ class Movie {
         $movie = Pelicula::where("id",$id)->where("id_estado_fk",$this->idStatusActive())->first();
 
         if(!$movie){
-            throw new \Exception("No found the movie with the ID {$id}",$this->codeBadRequest);
+            throw new \Exception("No found the movie with the ID {$id}",self::codeBadRequest);
         }
 
         $state = Estado::where("nombre","eliminado")->first();
         if(!$state){
-            throw new \Exception("The state is incorrect",$this->codeBadRequest);
+            throw new \Exception("The state is incorrect",self::codeBadRequest);
         }
 
         $movie->id_estado_fk = $state->id;
         $movie->save();
 
-        return ["message" => "Ok, the movie deleted"];
+        return ["message" => "Ok, the movie {$movie->nombre} deleted"];
     }
 
     /**
      * @throws \Exception
      */
     public function update(Pelicula $movie, array $properties):array{
+
+        $masterInstance = Master::getMasterSingleton();
         if(is_array($properties) && count($properties)>0){
             $aux = false;
 
             foreach ($properties as $field=>$fieldValue){
                 if($field==="category"){
-                    $category=Categoria::findOrFail($fieldValue);
+                    $category=Categoria::find($fieldValue);
                     if(!$category){
-                        throw new \Exception("No found the category with the ID {$fieldValue}",$this->codeBadRequest);
+                        throw new \Exception("No found the category with the ID {$fieldValue}",self::codeBadRequest);
                     }
 
                     $field = "id_categoria_fk";
@@ -104,11 +101,11 @@ class Movie {
                         $stockTaking = Inventario::where("id_pelicula_fk",$movie->id)->first();
                         $aux=true;
                     }
-                    $fieldTranslate=$this->translateFieldsMovie($field);
+                    $fieldTranslate=$masterInstance->translateFieldsMovie($field);
                     $stockTaking->$fieldTranslate=$fieldValue;
                 }
                 else{
-                    $fieldTranslate = $this->translateFieldsMovie($field);
+                    $fieldTranslate = $masterInstance->translateFieldsMovie($field);
                     $movie->$fieldTranslate = $fieldValue;
                 }
 
@@ -131,28 +128,35 @@ class Movie {
 
         }
         else{
-            throw new \Exception("The fields are required",$this->codeBadRequest);
+            throw new \Exception("The fields are required",self::codeBadRequest);
         }
     }
 
     public function read(string $parameterConsult,string $value):array{
+        $statusActive = $this->idStatusActive();
+
         switch ($parameterConsult){
             case $parameterConsult=="name":
-                $movies = Pelicula::where("nombre",$value)->where("id_estado_fk",$this->idStatusActive())->get();
+                $movies = Pelicula::where("nombre",$value)->where("id_estado_fk",$statusActive)->get();
                 if(!$movies){
-                    throw new \Exception("No found the movie with the name {$parameterConsult}",$this->codeBadRequest);
+                    throw new \Exception("No found the movie with the name {$parameterConsult}",self::codeBadRequest);
                 }
                 break;
             case $parameterConsult=="category":
                 $category = Categoria::where("nombre",$value)->first();
                 if(!$category) {
-                    throw new \Exception("No found the category {$value}");
+                    throw new \Exception("No found the category {$value}",self::codeBadRequest);
                 }
-                $movies = Pelicula::where("id_categoria_fk",$category->id)->where("id_estado_fk",$this->idStatusActive())->get();
+                $movies = Pelicula::where("id_categoria_fk",$category->id)->where("id_estado_fk",$statusActive)->get();
                 if(!$movies){
-                    throw new \Exception("No found the movies with the category {$parameterConsult}",$this->codeBadRequest);
+                    throw new \Exception("No found the movies with the category {$parameterConsult}",self::codeBadRequest);
                 }
+                break;
+            default:
+                $movies = Pelicula::where("id_estado_fk",$statusActive)->get();
         }
+
+
 
         $returnMovies = [];
         foreach ($movies as $movie){
@@ -183,25 +187,5 @@ class Movie {
         return (Estado::where("nombre","Activo")->first())->id;
     }
 
-    public function translateFieldsMovie($field,$returnLanguageTranslate="spanish"){
-        $fields = $this->fields;
-
-        switch ($returnLanguageTranslate){
-            case $returnLanguageTranslate=="spanish":
-                if(isset($fields[$field])){
-                    return $fields[$field];
-                }
-                throw new \Exception("The field is incorrect",$this->codeBadRequest);
-            case $returnLanguageTranslate=="english":
-                foreach ($fields as $key => $value){
-                    if($value === $field){
-                        return $key;
-                    }
-                }
-                throw new \Exception("The field is incorrect",$this->codeBadRequest);
-            default:
-                throw new \Exception("The field is incorrect",$this->codeBadRequest);
-        }
-    }
 
 }
