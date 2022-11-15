@@ -86,4 +86,12 @@ class MovieController extends Controller
         }
     }
 
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function prueba(Request $request){
+        return $this->response(200,["parameters"=>$request->all(),"method"=>$request->getMethod()]);
+    }
+
 }

@@ -17,6 +17,9 @@ $router->get('/', function () use ($router) {
     return "inventario-peliculas";
 });
 
+$router->get('/prueba', 'MovieController@prueba');
+$router->post('/prueba', 'MovieController@prueba');
+
 $router->post('/v1/movie', 'MovieController@create');
 
 $router->get('/v1/movie', 'MovieController@read');
